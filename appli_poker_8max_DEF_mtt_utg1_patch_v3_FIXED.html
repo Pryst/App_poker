@@ -826,7 +826,7 @@
       if (pos === "BB") setStatus("BB : pas d’ouverture en premier de parole."); else setStatus("");
     }
     function setStatus(t) { statusEl.textContent = t; }
-    for (const id of ["format", "stack", "pos", "sizing"]) document.getElementById(id).addEventListener("change", () => { pinned = null; renderRFI(); });
+    for (const id of ["format", "stack", "pos", "sizing"]) document.getElementById(id).addEventListener("input" /* iOS Safari fix: use input instead of change for <select> */, () => { pinned = null; renderRFI(); });
     renderRFI();
 
     /******************* RENDU DEFENSE (CC + 3-bet en même temps) *******************/
@@ -880,7 +880,7 @@
       }
       dStatus.textContent = "";
     }
-    for (const id of ["d-format", "d-stack", "opener", "hero"]) document.getElementById(id).addEventListener("change", () => { dPinned = null; renderDefense(); });
+    for (const id of ["d-format", "d-stack", "opener", "hero"]) document.getElementById(id).addEventListener("input", () => { dPinned = null; renderDefense(); });
     renderDefense();
 
     /******************* NAVIGATION ENTRE PANELS *******************/
