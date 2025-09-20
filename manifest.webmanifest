@@ -1,0 +1,35 @@
+{
+  {
+  "name": "Appli Poker 8-max",
+  "short_name": "Poker 8-max",
+  "start_url": "./appli_poker_8max_DEF_mtt_utg1_patch_v3_FIXED.html",
+  "display": "standalone",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+  }
+}

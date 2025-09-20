@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b0e14">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ranges Poker – 8-max (Cash & MTT) + Annexes + Défense vs Open</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --fg: #e8ecf1;
+      --muted: #a9b3c1;
+      --grid: #1a1f29;
+      --cell: #141823;
+      --border: #222a36;
+      --open: #2e7d32;
+      /* vert */
+      --mix: #b8860b;
+      /* doré */
+      --fold: #2c2f3a;
+      /* gris foncé */
+      --cc: #1565c0;
+      /* bleu pour cold-call */
+      --tb: #8e24aa;
+      /* violet pour 3-bet */
+      --accent: #5aa5ff;
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 24px 14px;
+    }
+
+    h1 {
+      font-size: clamp(18px, 2.2vw, 24px);
+      margin: 6px 0 0
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: -4px
+    }
+
+    .panel {
+      width: min(1200px, 95vw);
+      background: #0c0f14;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 16px 18px;
+      box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px
+    }
+
+    .tab {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #0e1420;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .tab[aria-selected="true"] {
+      color: var(--fg);
+      background: #101828;
+      border-color: #2a3342
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 12px
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    select,
+    input[type="number"],
+    input[type="text"],
+    button {
+      background: #0e1420;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none
+    }
+
+    .grid {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--grid)
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 32px repeat(13, minmax(28px, 1fr))
+    }
+
+    .cell,
+    .head {
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--cell)
+    }
+
+    .head {
+      background: #0e1420;
+      font-weight: 600
+    }
+
+    .row .head:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1
+    }
+
+    .label-col {
+      position: sticky;
+      left: 0;
+      background: #0e1420
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: -2px
+    }
+
+    .open {
+      background: var(--open)
+    }
+
+    .mix {
+      background: var(--mix)
+    }
+
+    .fold {
+      background: var(--fold)
+    }
+
+    .dot-cc {
+      background: var(--cc)
+    }
+
+    .dot-tb {
+      background: var(--tb)
+    }
+
+    .tip {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .status {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .cell[data-state=open] {
+      background: linear-gradient(0deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0)), var(--open)
+    }
+
+    .cell[data-state=mix] {
+      background: linear-gradient(0deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0)), var(--mix)
+    }
+
+    .cell[data-state=fold] {
+      background: var(--fold)
+    }
+
+    .cell[data-state=cc] {
+      background: linear-gradient(0deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0)), var(--cc)
+    }
+
+    .cell[data-state=tb] {
+      background: linear-gradient(0deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0)), var(--tb)
+    }
+
+    .cell[data-state=both] {
+      background: linear-gradient(135deg, var(--cc) 0 50%, var(--tb) 0 50%);
+    }
+
+    .cell:hover {
+      outline: 2px solid var(--accent);
+      z-index: 2;
+      cursor: pointer
+    }
+
+    .sticky-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 10px 0 0
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #0e1420;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .footer {
+      opacity: .8;
+      font-size: 12px
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px
+    }
+
+    @media (max-width:900px) {
+      .controls {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .row {
+        grid-template-columns: 24px repeat(13, minmax(20px, 1fr))
+      }
+
+      .cell,
+      .head {
+        font-size: 10px
+      }
+
+      .two-col {
+        grid-template-columns: 1fr
+      }
+    }
+
+    table.odds {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px
+    }
+
+    table.odds th,
+    table.odds td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: center;
+      background: #0e1420
+    }
+
+    table.odds th {
+      background: #101828
+    }
+  </style>
+</head>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
+</script>
+
+<body>
+  <div class="panel" style="text-align:center">
+    <h1>Ranges Poker – 8-max</h1>
+    <div class="sub">Cash 100bb & MTT (15bb / 20bb / 30bb / 40bb). Ouverture (RFI) + Défense vs Open. Annexes : cotes du
+      pot.</div>
+    <div class="nav" role="tablist">
+      <button class="tab" data-tab="rfi" aria-selected="true">RFI (Ouvrir)</button>
+      <button class="tab" data-tab="defense">Défense vs Open</button>
+      <button class="tab" data-tab="annexes">Annexes – Cotes du pot</button>
+    </div>
+  </div>
+
+  <!-- ====== RFI PANEL ====== -->
+  <div class="panel tabpanel" id="tab-rfi">
+    <div class="controls">
+      <div class="control">
+        <label for="format">Format</label>
+        <select id="format">
+          <option value="cash">Cash Game (100bb)</option>
+          <option value="mtt">MTT</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="stack">Profondeur</label>
+        <select id="stack">
+          <option value="100">100bb (cash)</option>
+          <option value="40">40bb (MTT)</option>
+          <option value="30">30bb (MTT)</option>
+          <option value="20">20bb (MTT)</option>
+          <option value="15">15bb (MTT)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="pos">Position (8-max)</label>
+        <select id="pos">
+          <option>UTG</option>
+          <option>UTG+1</option>
+          <option>MP</option>
+          <option>HJ</option>
+          <option>CO</option>
+          <option>BTN</option>
+          <option>SB</option>
+          <option>BB</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="sizing">Sizing d’ouverture</label>
+        <select id="sizing">
+          <option value="std">Standard</option>
+          <option value="tight">Plus tight</option>
+          <option value="loose">Plus loose</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sticky-bar">
+      <div class="legend">
+        <span><span class="dot open"></span>Ouvrir</span>
+        <span><span class="dot mix"></span>Mix (ouvrir parfois)</span>
+        <span><span class="dot fold"></span>Fold</span>
+      </div>
+      <div class="pill" id="hint">Astuce : survole pour voir le détail, clique pour le figer.</div>
+    </div>
+
+    <div id="grid" class="grid" aria-live="polite"></div>
+    <div class="status" id="status"></div>
+    <div class="tip">BB : pas d’ouverture en premier de parole. Utilise plutôt des ranges de défense vs open/limp.</div>
+  </div>
+
+  <!-- ====== DEFENSE PANEL ====== -->
+  <div class="panel tabpanel" id="tab-defense" hidden>
+    <div class="controls">
+      <div class="control">
+        <label for="d-format">Format</label>
+        <select id="d-format">
+          <option value="cash">Cash Game (100bb)</option>
+          <option value="mtt">MTT</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="d-stack">Profondeur</label>
+        <select id="d-stack">
+          <option value="100">100bb (cash)</option>
+          <option value="40">40bb (MTT)</option>
+          <option value="30">30bb (MTT)</option>
+          <option value="20">20bb (MTT)</option>
+          <option value="15">15bb (MTT)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="opener">Open raise de</label>
+        <select id="opener">
+          <option>UTG</option>
+          <option>UTG+1</option>
+          <option>MP</option>
+          <option>HJ</option>
+          <option>CO</option>
+          <option>BTN</option>
+          <option>SB</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="hero">Héros (ta position)</label>
+        <select id="hero">
+          <option>UTG</option>
+          <option>UTG+1</option>
+          <option>MP</option>
+          <option>HJ</option>
+          <option>CO</option>
+          <option>BTN</option>
+          <option>SB</option>
+          <option>BB</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sticky-bar">
+      <div class="legend">
+        <span><span class="dot dot-cc"></span>Cold call</span>
+        <span><span class="dot dot-tb"></span>3-bet</span>
+        <span><span class="dot dot-cc"
+            style="background:linear-gradient(135deg, var(--cc) 0 50%, var(--tb) 0 50%)"></span>CC + 3-bet</span>
+        <span class="pill">Les positions E/MP défendent très peu en cold call hors blinds.</span>
+      </div>
+    </div>
+
+    <div id="d-grid" class="grid" aria-live="polite"></div>
+    <div class="status" id="d-status"></div>
+    <div class="tip">Conseil: ajuste selon le sizing adverse, les antes et les profils. Les listes fournies sont des
+      bases travaillables.</div>
+  </div>
+
+  <!-- ====== ANNEXES PANEL ====== -->
+  <div class="panel tabpanel" id="tab-annexes" hidden>
+    <h2 style="margin:0 0 6px">Cotes du pot — Tableau récapitulatif</h2>
+    <div class="sub">Affiche pour chaque mise (% du pot) : <strong>ratio (pot+mise : call)</strong> et <strong>équité
+        minimale</strong> requise pour payer.</div>
+    <table class="odds">
+      <thead>
+        <tr>
+          <th>Mise (% pot)</th>
+          <th>Ratio (pot+mise : call)</th>
+          <th>Équité requise</th>
+        </tr>
+      </thead>
+      <tbody id="annex-table-body"></tbody>
+    </table>
+    <div class="tip">Formules : ratio = (1 + b) / b ; équité = b / (1 + b) — avec b = mise%/100 et pot normalisé à 1.
+    </div>
+  </div>
+
+  <div class="footer">Ces ranges sont des bases « GTO-ish » pédagogiques. Adapte selon la table, les profils, les antes
+    et les sizings adverses.</div>
+
+  <script>
+    /******************* OUTILS COMMUNS *******************/
+    const USE_RFI_FALLBACK = false; // toggle temporaire
+    const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
+    const HANDS = (() => { const rows = []; for (let i = 0; i < RANKS.length; i++) { const left = RANKS[i]; const row = []; for (let j = 0; j < RANKS.length; j++) { const right = RANKS[j]; if (i === j) { row.push(left + left); } else if (i < j) { row.push(left + right + "s"); } else { row.push(right + left + "o"); } } rows.push(row); } return rows; })();
+    function isValidLabel(lbl) { if (/^[2-9TJQKA]\1$/.test(lbl)) return true; if (/^[AKQJT98765432]{2}[so]$/.test(lbl)) { return RANKS.indexOf(lbl[0]) < RANKS.indexOf(lbl[1]); } return false; }
+    function expandPlus(token) {
+      const out = []; if (!token || token[token.length - 1] !== '+') return out; const base = token.slice(0, -1);
+      if (/^([2-9TJQKA])\1$/.test(base)) { const r = base[0]; const start = RANKS.indexOf(r); for (let i = start; i >= 0; i--) out.push(RANKS[i] + RANKS[i]); return out; }
+      const m = base.match(/^([AKQJT98765432])([AKQJT98765432])(s|o)$/); if (!m) return out; const hi = m[1], lo = m[2], sfx = m[3]; const iHi = RANKS.indexOf(hi), iLo = RANKS.indexOf(lo); for (let j = iLo; j > iHi; j--) out.push(hi + RANKS[j] + sfx); return out;
+    }
+    function expandRangeSpan(a, b) {
+      const out = []; if (/^([2-9TJQKA])\1$/.test(a) && /^([2-9TJQKA])\1$/.test(b)) { let ai = RANKS.indexOf(a[0]), bi = RANKS.indexOf(b[0]); const step = ai < bi ? 1 : -1; for (let i = ai; i !== bi + step; i += step) out.push(RANKS[i] + RANKS[i]); return out; }
+      const ma = a.match(/^([AKQJT98765432])([AKQJT98765432])(s|o)$/); const mb = b.match(/^([AKQJT98765432])([AKQJT98765432])(s|o)$/); if (!ma || !mb) return out; if (ma[1] !== mb[1] || ma[3] !== mb[3]) return out; const hi = ma[1], sfx = ma[3]; let from = RANKS.indexOf(ma[2]), to = RANKS.indexOf(mb[2]); const step = from < to ? 1 : -1; for (let j = from; j !== to + step; j += step) { if (j !== RANKS.indexOf(hi)) out.push(hi + RANKS[j] + sfx); } return out;
+    }
+    function handListToSet(expr) {
+      const set = new Set();
+      if (!expr) return set;
+
+      const RLOW = [...RANKS].reverse(); // A..2 reversed => 2..A
+      const tokens = expr.replace(/–/g, '-').split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+
+      function addPair(r) { set.add(r + r); }
+
+      function expandAlias(tok) {
+        const t = tok.toLowerCase();
+        const acc = [];
+        if (t === 'axs') { for (const r of RLOW) { if (r === 'A') break; acc.push('A' + r + 's'); } }
+        else if (t === 'kxs') { for (const r of RLOW) { if (r === 'K') break; acc.push('K' + r + 's'); } }
+        else if (t === 'qxs') { for (const r of RLOW) { if (r === 'Q') break; acc.push('Q' + r + 's'); } }
+        else if (t === 'jxs') { for (const r of RLOW) { if (r === 'J') break; acc.push('J' + r + 's'); } }
+        else if (t === 'broadways' || t === 'broadway') {
+          ['AKs', 'AQs', 'AJs', 'ATs', 'KQs', 'KJs', 'QJs', 'JTs', 'AKo', 'AQo', 'AJo', 'ATo', 'KQo', 'KJo', 'QJo', 'JTo'].forEach(h => acc.push(h));
+        }
+
+        else if (t === 'paires' || t === 'pairs') { ['99', '88', '77', '66', '55', '44', '33', '22'].forEach(h => acc.push(h)); }
+        return acc;
+      }
+
+      for (const raw of tokens) {
+        let tok = raw;
+        if (!tok) continue;
+
+        // 1) Paires isolées
+        if (/^([2-9TJQKA])\1$/.test(tok)) { addPair(tok[0]); continue; }
+
+        // 2) Aliases
+        const alias = expandAlias(tok);
+        if (alias.length) { alias.forEach(h => set.add(h)); continue; }
+
+        // 3) Spans (ex: 99-22 ou A5s-A2s)
+        if (tok.includes('-')) {
+          const [a, b] = tok.split('-').map(s => s.trim());
+          expandRangeSpan(a, b).forEach(h => set.add(h));
+          continue;
+        }
+
+        // 4) Plus expansions (77+, AJo+, KTs+ etc.)
+        if (/\+$/.test(tok)) {
+          expandPlus(tok).forEach(h => set.add(h));
+          continue;
+        }
+
+        // 5) Combos explicites (AKs, KQo, JTs, etc.)
+        if (/^[AKQJT98765432]{2}[so]$/.test(tok)) {
+          // Assume hi-lo already correct in data
+          set.add(tok);
+          continue;
+        }
+
+        try { console.debug('[parse-range] token ignoré:', tok, 'dans expr:', expr); } catch (_) { }
+      }
+
+      return set;
+    }
+
+
+    /******************* RANGES D'OUVERTURE (RFI) *******************/
+    const RANGES = {
+      cash: {
+        "100": { // 100bb cash doit TOUJOURS exister
+          "UTG": { open: "77+, AQs+, AJs, KQs, AQo+, KQo, ATs, A5s-A4s, KJs, QJs, JTs, T9s, 98s", mix: "66, AJo, KTs, QTs, J9s, 87s, 55, 44, 33, 22" },
+          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, JTs, T9s, 98s, AJo+, KQo", mix: "A9s, KTs, QTs, J9s, 87s, 76s, 55, 44" },
+          "MP": { open: "55+, ATs+, A5s-A4s, KQs, KJs, QJs, JTs, T9s, 98s, 87s, AJo+, KQo, KJo, QJo", mix: "A9s, KTs, QTs, J9s, 76s, 65s, 44, 33" },
+          "HJ": { open: "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, ATo+, KQo, KJo, QJo", mix: "KTs, QTs, J9s, T8s, 65s, 54s, 33" },
+          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, 54s, ATo+, KTo+, QTo+, JTo, KQo", mix: "K8s, Q8s, J8s, T7s, 64s, 53s, A9o, K9o, Q9o, 22" },
+          "BTN": { open: "22+, A2s+, K2s+, Q5s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K7o+, Q9o+, J9o+, T9o, 98o", mix: "K6o, Q8o, J8o, T8o, 87o, 76o, 64s, 43s" },
+          "SB": { open: "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K8o+, Q9o+, J9o+, T9o", mix: "K7o, Q8o, J8o, T8o, 98o, 87o, 76o" },
+          "BB": { open: "", mix: "" }
+        }
+      },
+      mtt: {
+        "40": { // 40bb MTT doit exister
+          "UTG": { open: "66+, ATs+, KQs, AJo+, KQo", mix: "A5s, KJs, QJs, JTs, 55" },
+          "UTG+1": { open: "55+, ATs+, KQs, KJs, QJs, AJo+, KQo", mix: "A9s, T9s" },
+          "MP": { open: "55+, ATs+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, AJo+, KQo", mix: "KTs, QTs" },
+          "HJ": { open: "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, ATo+, KQo, KJo, QJo", mix: "KTs, QTs, 87s" },
+          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, ATo+, KTo+, QTo+, JTo", mix: "K8s, Q8s, J8s, 54s, A9o" },
+          "BTN": { open: "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K8o+, Q9o+, J9o+, T9o", mix: "K7o, Q8o, J8o, 98o, 87o" },
+          "SB": { open: "22+, A2s+, K6s+, Q8s+, J8s+, T8s+, 98s, 87s, 76s, A2o+, KTo+, QTo+, JTo", mix: "K9o, Q9o, J9o" },
+          "BB": { open: "", mix: "" }
+        },
+        "30": {
+          "UTG": { open: "77+, ATs+, KQs, AJo+, KQo, A5s", mix: "66, KJs, QJs, JTs, 55" },
+          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, AJo+, KQo, A5s", mix: "A9s, QTs, JTs, T9s" },
+          "MP": { open: "55+, ATs+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, AJo+, KQo", mix: "A9s, KTs, QTs, J9s" },
+          "HJ": { open: "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, ATo+, KQo, KJo, QJo", mix: "KTs, QTs, J9s, 87s" },
+          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, ATo+, KTo+, QTo+, JTo", mix: "K8s, Q8s, J8s, T7s, 54s, A9o" },
+          "BTN": { open: "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K7o+, Q9o+, J9o+, T9o", mix: "K6o, Q8o, J8o, T8o, 98o, 87o, 76o" },
+          "SB": { open: "22+, A2s+, K5s+, Q8s+, J8s+, T8s+, 98s, 87s, 76s, A2o+, K9o+, QTo+, JTo", mix: "K8o, Q9o, J9o, T9o, 65s, 54s" },
+          "BB": { open: "", mix: "" }
+        },
+        "20": {
+          "UTG": { open: "77+, AQs+, AJs, KQs, AQo+, A5s", mix: "66, KJs" },
+          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, AJo+", mix: "A9s, KQo" },
+          "MP": { open: "55+, ATs+, A5s, KQs, KJs, QJs, AJo+", mix: "KQo, A9s, JTs" },
+          "HJ": { open: "44+, A9s+, A5s, KQs, KJs, QJs, JTs, ATo+, KQo", mix: "KTs, QTs, T9s" },
+          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, ATo+, KJo+, QTo+, JTo", mix: "K8s, Q8s, J8s, 87s" },
+          "BTN": { open: "22+, A2s+, K2s+, Q7s+, J7s+, T7s+, 97s+, 86s+, 76s, 65s, A2o+, K9o+, Q9o+, J9o+, T9o", mix: "K8o, Q8o, J8o, 98o, 87o" },
+          "SB": { open: "22+, A2s+, K7s+, Q9s+, J9s+, T9s, 98s, A2o+, KTo+, QTo+, JTo", mix: "K9o, Q9o, J9o, 87s" },
+          "BB": { open: "", mix: "" }
+        },
+        "15": {
+          "UTG": { open: "77+, AQs+, AJs, KQs, AQo+, A5s", mix: "66, KJs, QJs" },
+          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, AJo+, A5s", mix: "A9s, KQo" },
+          "MP": { open: "55+, ATs+, A5s, KQs, KJs, QJs, AJo+", mix: "KQo, A9s, JTs" },
+          "HJ": { open: "44+, A9s+, A5s, KQs, KJs, QJs, JTs, ATo+, KQo", mix: "KTs, QTs, T9s" },
+          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, ATo+, KJo+, QTo+, JTo", mix: "K8s, Q8s, J8s, T8s, 87s" },
+          "BTN": { open: "22+, A2s+, K2s+, Q7s+, J7s+, T7s+, 97s+, 86s+, 76s, 65s, A2o+, K9o+, Q9o+, J9o+, T9o", mix: "K8o, Q8o, J8o, 98o, 87o" },
+          "SB": { open: "22+, A2s+, K7s+, Q9s+, J9s+, T9s, 98s, A2o+, KTo+, QTo+, JTo", mix: "K9o, Q9o, J9o, 87s" },
+          "BB": { open: "", mix: "" }
+        }
+      }
+    };
+
+    /******************* RANGES DE DEFENSE VS OPEN *******************/
+    // IMPORTANT : assurer l'existence des clés cash->"100" et mtt->{"40","30","20","15"}
+    const DEFENSE = {
+      cash: {
+        "100": {
+          "UTG": {
+            "UTG+1": { cc: "", tb: "QQ+, AKs, AKo, AQs" },
+            "MP": { cc: "", tb: "JJ+, AKs, AKo, AQs, KQs" },
+            "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs, KQs" },
+            "CO": { cc: "AQs, KQs, JJ-99", tb: "QQ+, AKs, AKo, AJs, KJs" },
+            "BTN": { cc: "AQs-ATs, KQs, KJs, QJs, JJ-88, JTs, T9s", tb: "QQ+, AKs, AKo, AJs, KQo" },
+            "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" },
+            "BB": { cc: "A2s-AKs, KJs-KTs, QJs, JTs, T9s, 99-22, AJo-ATo, KQo", tb: "QQ+, AKs, AKo, AQs" }
+          },
+          "UTG+1": {
+            "MP": { cc: "", tb: "JJ+, AKs, AKo, AQs" },
+            "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs" },
+            "CO": { cc: "AQs, KQs, JJ-99", tb: "QQ+, AKs, AKo, AJs" },
+            "BTN": { cc: "AQs-ATs, KQs, QJs, JJ-88", tb: "QQ+, AKs, AKo, AJs, KQo" },
+            "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" },
+            "BB": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, paires", tb: "JJ+, AKs, AKo, AQs" }
+          },
+          "MP": {
+            "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs" },
+            "CO": { cc: "AQs-ATs, KQs, QJs, 99-77", tb: "QQ+, AKs, AKo, AJs" },
+            "BTN": { cc: "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-99, AKs, AKo, AQs-AJs" },
+            "SB": { cc: "AQs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs" },
+            "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo, AQs" }
+          },
+          "HJ": {
+            "CO": { cc: "AQs-ATs, KQs, KJs, QJs, JTs, 99-77", tb: "QQ+, AKs, AKo, AJs, KQo" },
+            "BTN": { cc: "A2s-AKs, K2s-KQs, QJs, JTs, T9s, 98s, 87s, 76s, 99-22, AJo-ATo, KQo, KJo", tb: "QQ-99, AKs, AKo, AQs-AJs, KQs-KJs, QJs" },
+            "SB": { cc: "AQs-AJs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs, AJs, KQs" },
+            "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, T9s, 98s, 87s, 76s, 65s, 54s, paires", tb: "JJ+, AKs, AKo, AQs, KQs" }
+          },
+          "CO": {
+            "BTN": { cc: "A2s-AKs, K9s+, Q9s+, JTs, T9s, 98s, 87s, 76s, 88-22, AJo-ATo, KQo, KJo, QJo", tb: "QQ-99, AKs, AKo, AQs-AJs, KQs-KJs, QJs" },
+            "SB": { cc: "AQs-ATs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs, AJs, KQs" },
+            "BB": { cc: "A2s-AKs, K2s-KQs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs, KQs" }
+          },
+          "BTN": {
+            "SB": { cc: "Assez tight: AQs-ATs, KQs, QJs, JTs, 99-77", tb: "QQ-88, AKs, AKo, AQs-AJs, KQs-KJs" },
+            "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, paires, AJo-ATo, KQo, KJo", tb: "TT+, AQo+, AQs-AJs, KQs-KJs" }
+          },
+          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        }
+      },
+      mtt: {
+        "40": {
+          "UTG": {
+            "UTG+1": { cc: "", tb: "QQ+, AKs, AKo, AQs" }, "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs" }, "CO": { cc: "AQs, KQs, JJ-99", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "AQs-ATs, KQs, QJs, JJ-88, JTs, T9s", tb: "QQ+, AKs, AKo, AJs" }, "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, paires", tb: "JJ+, AKs, AKo, AQs" }
+          },
+          "UTG+1": { "MP": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
+          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs, KQs, QJs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "QQ-99, AKs, AKo, AQs-AJs" }, "SB": { cc: "Peu", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
+          "HJ": { "CO": { cc: "AQs-ATs, KQs, QJs, 99-77", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "Quelques AQs-AJs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
+          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo vs 2-2.5x", tb: "TT+, AQo+, AQs-AJs, KQs" }, "SB": { cc: "AQs-ATs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
+          "BTN": { "SB": { cc: "AQs-ATs, KQs, QJs, JTs, 99-77", tb: "QQ-88, AKs, AKo, AQs-AJs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
+          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        },
+        "30": {
+          "UTG": {
+            "UTG+1": { cc: "", tb: "JJ+, AKs, AKo, AQs" }, "HJ": { cc: "", tb: "JJ+, AKs, AKo, AQs" }, "CO": { cc: "AQs, KQs, TT-99", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "AQs-ATs, KQs, QJs, TT-88, JTs, T9s", tb: "QQ+, AKs, AKo, AJs" }, "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)", tb: "JJ+, AKs, AKo, AQs" }
+          },
+          "UTG+1": { "MP": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
+          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs, KQs, QJs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "Peu", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
+          "HJ": { "CO": { cc: "AQs-ATs, KQs, QJs, 99-77", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "AQs-AJs, KQs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
+          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo vs 2-2.2x", tb: "TT+, AQo+, AQs-AJs, KQs" }, "SB": { cc: "AQs-ATs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
+          "BTN": { "SB": { cc: "AQs-ATs, KQs, QJs, JTs, TT-99", tb: "QQ-99, AKs, AKo, AQs-AJs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
+          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        },
+        "20": {
+          "UTG": {
+            "UTG+1": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "JJ+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo, AQs" }, "BTN": { cc: "AQs-ATs, KQs, JTs, T9s", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)", tb: "JJ+, AKs, AKo" }
+          },
+          "UTG+1": { "MP": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "AQs-AJs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "HJ": { "CO": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "AQs-AJs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" }, "SB": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "BTN": { "SB": { cc: "AQs-ATs, KQs, QJs, JTs, TT-99", tb: "QQ-99, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        },
+        "15": {
+          "UTG": {
+            "UTG+1": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "QQ+, AKs, AKo" }, "CO": { cc: "AQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, JTs, T9s", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)", tb: "QQ+, AKs, AKo" }
+          },
+          "UTG+1": { "MP": { cc: "", tb: "QQ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88", tb: "QQ-TT, AKs, AKo, AQs" }, "SB": { cc: "AQs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "HJ": { "CO": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88", tb: "QQ-TT, AKs, AKo, AQs" }, "SB": { cc: "AQs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs" }, "SB": { cc: "Peu", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "BTN": { "SB": { cc: "Très tight", tb: "QQ-99, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
+          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        }
+      }
+    };
+
+    // RFI hardened tests
+    try {
+      const tPairs = handListToSet('55, 44, 33, 22');
+      console.assert(tPairs.has('55') && tPairs.has('44') && tPairs.has('33') && tPairs.has('22'), 'Pairs parsing failed');
+      const tSpan = handListToSet('A5s-A2s');
+      console.assert(tSpan.has('A5s') && tSpan.has('A2s'), 'Span parsing failed');
+    } catch (e) { console.warn('RFI tests warn:', e); }
+  </script>
+  <script>
+    /******************* RENDU RFI *******************/
+    const gridEl = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    let pinned = null;
+    function makeStateMap(fmt, stack, pos, sizing) {
+      // Robust: honor literal tokens present in base.open/base.mix even if parser misses them
+      function tokenIn(expr, tok) {
+        if (!expr) return false;
+        const re = new RegExp('(^|,)\\s*' + tok.replace(/[+*?.^$()[\]{}|\\]/g, '\\$&') + '\\s*(,|$)');
+        return re.test(expr);
+      }
+
+      const base = (fmt === "cash" ? (RANGES.cash && RANGES.cash["100"])?.[pos] : (RANGES.mtt?.[stack] || {})[pos]) || { open: "", mix: "" };
+      const openSet = handListToSet(base.open); const openStr = base.open || "";
+      const mixSet = handListToSet(base.mix); const mixStr = base.mix || "";
+
+      const adjust = (label, current) => {
+        // Position groups
+        const EP = pos === "UTG" || pos === "UTG+1";
+        const MP = pos === "MP" || pos === "HJ";
+        const LP = pos === "CO" || pos === "BTN" || pos === "SB";
+
+        // Helpers
+        const isOff = /o$/.test(label);
+        const isSuited = /s$/.test(label);
+        const isPair = /^([2-9TJQKA])\1$/.test(label);
+        const isBroadway = /^[AKQJT][KQJT][so]$/.test(label);
+        const isSC = /^(T9|98|87|76|65|54)s$/.test(label);
+        const isLowKQsuited = /^(K[2-9]|Q[2-9])s$/.test(label);
+        const isKQTenSuited = /^(KT|QT|JT|QJ|KJ)s$/.test(label);
+
+        if (sizing === "tight") {
+          // General tightening principles:
+          // 1) Offsuit fringe -> down one tier first
+          if (current === "open" && isOff && !isBroadway) return "mix";
+          if (current === "mix" && isOff) return "fold";
+
+          // 2) Early position extra discipline
+          if (EP) {
+            // Drop weak Kxs/Qxs and weak SCs first
+            if (current === "mix" && (isLowKQsuited || (!isSC && isSuited && !isKQTenSuited && !isBroadway))) return "fold";
+          }
+
+          // 3) Pairs stay stickier than suited trash
+          if (current === "mix" && isPair) return "mix";
+          return current;
+        }
+
+        if (sizing === "loose") {
+          // General loosening principles:
+          // 1) Promote high quality suited hands first
+          if (current === "fold" && isSuited) {
+            // EP: allow only broadway suited & good SCs; block low Kxs/Qxs
+            if (EP && (isKQTenSuited || isBroadway || isSC)) return "mix";
+            // MP: allow KTs/QTs/JTs/QJs, decent SCs
+            if (MP && (isKQTenSuited || isBroadway || isSC)) return "mix";
+            // LP: allow most Kxs/Qxs and SCs
+            if (LP && (isLowKQsuited || isKQTenSuited || isBroadway || isSC)) return "mix";
+          }
+
+          // 2) Small pairs: promote slightly in MP/LP, not in EP for 40bb
+          if (current === "fold" && isPair) {
+            if (LP || MP) return "mix";
+          }
+
+          // 3) Offsuit: be conservative (avoid adding offsuit junk in EP/MP)
+          if (current === "fold" && isOff) {
+            if (LP && isBroadway) return "mix";
+          }
+
+          // 4) Keep existing opens/mixes
+          return current;
+        }
+
+        return current;
+      };
+
+      const map = new Map();
+      for (const row of HANDS) {
+        for (const lbl of row) {
+          let state = "fold";
+          const openHit = openSet.has(lbl) || (USE_RFI_FALLBACK && tokenIn(openStr, lbl));
+          const mixHit = mixSet.has(lbl) || (USE_RFI_FALLBACK && tokenIn(mixStr, lbl));
+          if (openHit) state = "open"; else if (mixHit) state = "mix";
+          state = adjust(lbl, state);
+          map.set(lbl, state);
+        }
+      }
+      return map;
+    }
+    function cellHead(text, isRow = false) { const d = document.createElement("div"); d.className = "head" + (isRow ? " label-col" : ""); d.textContent = text; return d; }
+    function describe(lbl, state, fmt, pos) { const acts = { open: "Ouvrir", mix: "Ouvrir parfois (mix)", fold: "Fold" }; return `${lbl} • ${acts[state] || state} • ${fmt.toUpperCase()} • ${pos}`; }
+    function renderRFI() {
+      const fmt = document.getElementById("format").value;
+      let stack = document.getElementById("stack").value;
+      if (fmt === "cash") stack = "100"; else if (stack === "100") stack = "30";
+      const pos = document.getElementById("pos").value;
+      const sizing = document.getElementById("sizing").value;
+      for (const opt of document.querySelectorAll("#stack option")) {
+        const val = opt.value; opt.disabled = (fmt === "cash" && val !== "100") || (fmt === "mtt" && val === "100");
+      }
+      const map = makeStateMap(fmt, stack, pos, sizing);
+      gridEl.innerHTML = "";
+      const header = document.createElement("div"); header.className = "row"; header.appendChild(cellHead("")); for (const r of RANKS) header.appendChild(cellHead(r)); gridEl.appendChild(header);
+      for (let i = 0; i < RANKS.length; i++) {
+        const row = document.createElement("div"); row.className = "row"; row.appendChild(cellHead(RANKS[i], true));
+        for (let j = 0; j < RANKS.length; j++) {
+          const lbl = HANDS[i][j];
+          const state = (pos === "BB") ? "fold" : (map.get(lbl) || "fold");
+          const c = document.createElement("div"); c.className = "cell"; c.dataset.label = lbl; c.dataset.state = state; c.title = describe(lbl, state, fmt, pos);
+          c.addEventListener("mouseenter", () => !pinned && setStatus(c.title));
+          c.addEventListener("mouseleave", () => !pinned && setStatus(""));
+          c.addEventListener("click", () => { pinned = (pinned === lbl) ? null : lbl; setStatus(describe(lbl, state, fmt, pos) + (pinned ? "  (verrouillé)" : "")); });
+          c.textContent = lbl; row.appendChild(c);
+        }
+        gridEl.appendChild(row);
+      }
+      if (pos === "BB") setStatus("BB : pas d’ouverture en premier de parole."); else setStatus("");
+    }
+    function setStatus(t) { statusEl.textContent = t; }
+    for (const id of ["format", "stack", "pos", "sizing"]) document.getElementById(id).addEventListener("change", () => { pinned = null; renderRFI(); });
+    renderRFI();
+
+    /******************* RENDU DEFENSE (CC + 3-bet en même temps) *******************/
+    const dGrid = document.getElementById("d-grid");
+    const dStatus = document.getElementById("d-status");
+    let dPinned = null;
+    function defStateMapBoth(fmt, stack, opener, hero) {
+      if (fmt === "cash") stack = "100"; else if (stack === "100") stack = "30";
+      const byFormat = fmt === "cash" ? DEFENSE.cash : DEFENSE.mtt;
+      const byStack = fmt === "cash" ? byFormat["100"] : (byFormat?.[stack] || {});
+      const block = (byStack?.[opener] || {})[hero] || { cc: "", tb: "" };
+      const ccSet = handListToSet(block.cc || "");
+      const tbSet = handListToSet(block.tb || "");
+      const map = new Map();
+      for (const row of HANDS) {
+        for (const lbl of row) {
+          const cc = ccSet.has(lbl), tb = tbSet.has(lbl);
+          let state = "fold";
+          if (cc && tb) state = "both"; else if (cc) state = "cc"; else if (tb) state = "tb";
+          map.set(lbl, state);
+        }
+      }
+      return map;
+    }
+    function renderDefense() {
+      const fmt = document.getElementById("d-format").value;
+      let stack = document.getElementById("d-stack").value;
+      if (fmt === "cash") stack = "100"; else if (stack === "100") stack = "30";
+      const opener = document.getElementById("opener").value;
+      const heroSel = document.getElementById("hero");
+      const order = ["UTG", "UTG+1", "MP", "HJ", "CO", "BTN", "SB", "BB"];
+      for (const opt of heroSel.options) { opt.disabled = order.indexOf(opt.value) <= order.indexOf(opener); }
+      if (order.indexOf(heroSel.value) <= order.indexOf(opener)) heroSel.value = "CO";
+
+      const map = defStateMapBoth(fmt, stack, opener, heroSel.value);
+      dGrid.innerHTML = "";
+      const header = document.createElement("div"); header.className = "row"; header.appendChild(cellHead("")); for (const r of RANKS) header.appendChild(cellHead(r)); dGrid.appendChild(header);
+      for (let i = 0; i < RANKS.length; i++) {
+        const row = document.createElement("div"); row.className = "row"; row.appendChild(cellHead(RANKS[i], true));
+        for (let j = 0; j < RANKS.length; j++) {
+          const lbl = HANDS[i][j]; const state = map.get(lbl) || "fold";
+          const c = document.createElement("div"); c.className = "cell"; c.dataset.label = lbl; c.dataset.state = state;
+          const verb = state === "both" ? "Cold call + 3-bet" : state === "cc" ? "Cold call" : state === "tb" ? "3-bet" : "Fold";
+          c.title = `${lbl} • ${verb} • ${fmt.toUpperCase()} • Héros ${heroSel.value} vs ${opener}`;
+          c.addEventListener("mouseenter", () => !dPinned && (dStatus.textContent = c.title));
+          c.addEventListener("mouseleave", () => !dPinned && (dStatus.textContent = ""));
+          c.addEventListener("click", () => { dPinned = (dPinned === lbl) ? null : lbl; dStatus.textContent = c.title + (dPinned ? "  (verrouillé)" : ""); });
+          c.textContent = lbl; row.appendChild(c);
+        }
+        dGrid.appendChild(row);
+      }
+      dStatus.textContent = "";
+    }
+    for (const id of ["d-format", "d-stack", "opener", "hero"]) document.getElementById(id).addEventListener("change", () => { dPinned = null; renderDefense(); });
+    renderDefense();
+
+    /******************* NAVIGATION ENTRE PANELS *******************/
+    const tabs = document.querySelectorAll('.tab[data-tab]');
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-tab'); if (!target) return;
+      document.querySelectorAll('.tabpanel').forEach(p => p.hidden = true);
+      document.getElementById('tab-' + target).hidden = false;
+      document.querySelectorAll('.tab[aria-selected]').forEach(t => t.setAttribute('aria-selected', 'false'));
+      btn.setAttribute('aria-selected', 'true');
+    }));
+
+    /******************* ANNEXES – tableau *******************/
+    (function buildAnnexTable() {
+      const rows = [25, 33, 50, 66, 75, 100, 200];
+      const tb = document.getElementById('annex-table-body');
+      const fmt2 = x => Number(x).toFixed(2);
+      rows.forEach(p => {
+        const b = p / 100; const ratio = (1 + b) / b; const eq = b / (1 + b) * 100;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p}% (${fmt2(b)}x pot)</td><td>${fmt2(ratio)} : 1</td><td>${fmt2(eq)}%</td>`;
+        tb.appendChild(tr);
+      });
+    })();
+
+    /******************* TESTS AUTOMATIQUES (console) *******************/
+    (function selfTest() {
+      try {
+        // Tests de parsing (existants)
+        const s1 = handListToSet('77+');
+        console.assert(s1.has('77') && s1.has('AA') && !s1.has('66'), '77+ doit inclure 77..AA');
+        const s2 = handListToSet('A5s+');
+        console.assert(s2.has('A5s') && s2.has('AKs') && !s2.has('A4s'), 'A5s+ doit aller jusqu\'à AKs');
+        const s3 = handListToSet('K9o+');
+        console.assert(['K9o', 'KTo', 'KJo', 'KQo'].every(h => s3.has(h)), 'K9o+ doit inclure K9o..KQo');
+        const s4 = handListToSet('A5s-A2s');
+        console.assert(['A5s', 'A4s', 'A3s', 'A2s'].every(h => s4.has(h)), 'A5s-A2s plage');
+        const s5 = handListToSet('66-22');
+        console.assert(['66', '55', '44', '33', '22'].every(h => s5.has(h)), '66-22 paires');
+
+        // Nouveaux tests de présence de configuration
+        console.assert(!!(RANGES.cash && RANGES.cash['100']), 'RANGES.cash["100"] doit exister');
+        console.assert(!!(RANGES.mtt && RANGES.mtt['30'] && RANGES.mtt['20']), 'RANGES.mtt["30"], ["20"] doivent exister');
+        console.assert(!!(DEFENSE.cash && DEFENSE.cash['100']), 'DEFENSE.cash["100"] doit exister');
+        console.assert(!!(DEFENSE.mtt && DEFENSE.mtt['40'] && DEFENSE.mtt['15']), 'DEFENSE.mtt stacks de base doivent exister');
+
+        console.log('%cAuto-tests OK', 'color:#4caf50');
+      } catch (e) { console.warn('Auto-tests ont détecté un problème', e); }
+    })();
+  </script>
+</body>
+
+</html>
