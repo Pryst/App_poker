@@ -462,10 +462,23 @@
     </table>
     <div class="tip">Formules : ratio = (1 + b) / b ; équité = b / (1 + b) — avec b = mise%/100 et pot normalisé à 1.
     </div>
+    <table class="odds">
+      <thead>
+        <tr>
+          <th>Tirage</th>
+          <th>Outs</th>
+          <th>Équité ≈ jusqu’à la river</th>
+          <th>Équité ≈ une carte</th>
+        </tr>
+      </thead>
+      <tbody id="draws-table-body"></tbody>
+    </table>
+
   </div>
 
   <div class="footer">Ces ranges sont des bases « GTO-ish » pédagogiques. Adapte selon la table, les profils, les antes
     et les sizings adverses.</div>
+
 
   <script>
     /******************* OUTILS COMMUNS *******************/
@@ -892,6 +905,41 @@
       document.querySelectorAll('.tab[aria-selected]').forEach(t => t.setAttribute('aria-selected', 'false'));
       btn.setAttribute('aria-selected', 'true');
     }));
+    /******************* ANNEXES – tirages & outs *******************/
+    (function buildDrawsTable() {
+      const tb = document.getElementById('draws-table-body');
+      if (!tb) return;
+
+      // Liste des tirages standard
+      const draws = [
+        { name: "Tirage ventral (gutshot)", outs: 4 },
+        { name: "Double ventral (double gutter)", outs: 8 },
+        { name: "Quinte par les deux bouts (OESD)", outs: 8 },
+        { name: "Tirage couleur (flush draw)", outs: 9 },
+        { name: "Gutshot + flush draw", outs: 12 },
+        { name: "OESD + flush draw (combo draw)", outs: 15 },
+        { name: "Deux overcards", outs: 6 },
+        { name: "Une overcard", outs: 3 }
+      ];
+
+      const fmt0 = x => Math.round(x);
+      const fmt1 = x => Number(x).toFixed(1);
+
+      // Règle du 4 et du 2 (approximations)
+      const eqToRiver = outs => Math.min(100, outs * 4); // turn+river
+      const eqOneCard = outs => Math.min(100, outs * 2); // une carte (turn->river ou flop->turn)
+
+      draws.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td>${d.name}</td>
+      <td>${fmt0(d.outs)}</td>
+      <td>≈ ${fmt1(eqToRiver(d.outs))}%</td>
+      <td>≈ ${fmt1(eqOneCard(d.outs))}%</td>
+    `;
+        tb.appendChild(tr);
+      });
+    })();
 
     /******************* ANNEXES – tableau *******************/
     (function buildAnnexTable() {
