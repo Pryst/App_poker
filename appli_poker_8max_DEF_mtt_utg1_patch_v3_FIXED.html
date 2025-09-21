@@ -897,14 +897,33 @@
     (function buildAnnexTable() {
       const rows = [25, 33, 50, 66, 75, 100, 200];
       const tb = document.getElementById('annex-table-body');
+
+      // convertit le pourcentage en fraction lisible
+      function fractionLabel(p) {
+        switch (p) {
+          case 25: return "1/4 du pot";
+          case 33: return "1/3 du pot";
+          case 50: return "1/2 pot";
+          case 66: return "2/3 du pot";
+          case 75: return "3/4 du pot";
+          case 100: return "pot";
+          case 200: return "2x pot";
+          default: return (p / 100).toFixed(2) + "x pot";
+        }
+      }
+
       const fmt2 = x => Number(x).toFixed(2);
+
       rows.forEach(p => {
-        const b = p / 100; const ratio = (1 + b) / b; const eq = b / (1 + b) * 100;
+        const b = p / 100;
+        const ratio = (1 + b) / b;
+        const eq = b / (1 + b) * 100;
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${p}% (${fmt2(b)}x pot)</td><td>${fmt2(ratio)} : 1</td><td>${fmt2(eq)}%</td>`;
+        tr.innerHTML = `<td>${p}% (${fractionLabel(p)})</td><td>${fmt2(ratio)} : 1</td><td>${fmt2(eq)}%</td>`;
         tb.appendChild(tr);
       });
     })();
+
 
     /******************* TESTS AUTOMATIQUES (console) *******************/
     (function selfTest() {
