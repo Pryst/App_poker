@@ -723,6 +723,16 @@
     const gridEl = document.getElementById("grid");
     const statusEl = document.getElementById("status");
     let pinned = null;
+// --- iOS fix helpers ---
+let __renderTimer = null;
+function scheduleRenderRFI() {
+  if (__renderTimer) clearTimeout(__renderTimer);
+  __renderTimer = setTimeout(() => {
+    __renderTimer = null;
+    renderRFI();
+  }, 150);
+}
+
     function makeStateMap(fmt, stack, pos, sizing) {
       // Robust: honor literal tokens present in base.open/base.mix even if parser misses them
       function tokenIn(expr, tok) {
@@ -817,9 +827,14 @@
       if (fmt === "cash") stack = "100"; else if (stack === "100") stack = "30";
       const pos = document.getElementById("pos").value;
       const sizing = document.getElementById("sizing").value;
-      for (const opt of document.querySelectorAll("#stack option")) {
-        const val = opt.value; opt.disabled = (fmt === "cash" && val !== "100") || (fmt === "mtt" && val === "100");
-      }
+      (function(){
+  const ae = document.activeElement && document.activeElement.id;
+  if (ae === "stack") return;
+  for (const opt of document.querySelectorAll("#stack option")) {
+    const val = opt.value;
+    opt.disabled = (fmt === "cash" && val !== "100") || (fmt === "mtt" && val === "100");
+  }
+})();
       const map = makeStateMap(fmt, stack, pos, sizing);
       gridEl.innerHTML = "";
       const header = document.createElement("div"); header.className = "row"; header.appendChild(cellHead("")); for (const r of RANKS) header.appendChild(cellHead(r)); gridEl.appendChild(header);
