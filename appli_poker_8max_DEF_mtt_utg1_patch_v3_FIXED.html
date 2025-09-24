@@ -462,23 +462,10 @@
     </table>
     <div class="tip">Formules : ratio = (1 + b) / b ; équité = b / (1 + b) — avec b = mise%/100 et pot normalisé à 1.
     </div>
-    <table class="odds">
-      <thead>
-        <tr>
-          <th>Tirage</th>
-          <th>Outs</th>
-          <th>Équité ≈ jusqu’à la river</th>
-          <th>Équité ≈ une carte</th>
-        </tr>
-      </thead>
-      <tbody id="draws-table-body"></tbody>
-    </table>
-
   </div>
 
   <div class="footer">Ces ranges sont des bases « GTO-ish » pédagogiques. Adapte selon la table, les profils, les antes
     et les sizings adverses.</div>
-
 
   <script>
     /******************* OUTILS COMMUNS *******************/
@@ -559,156 +546,814 @@
 
     /******************* RANGES D'OUVERTURE (RFI) *******************/
     const RANGES = {
-      cash: {
-        "100": { // 100bb cash doit TOUJOURS exister
-          "UTG": { open: "77+, AQs+, AJs, KQs, AQo+, KQo, ATs, A5s-A4s, KJs, QJs, JTs, T9s, 98s", mix: "66, AJo, KTs, QTs, J9s, 87s, 55, 44, 33, 22" },
-          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, JTs, T9s, 98s, AJo+, KQo", mix: "A9s, KTs, QTs, J9s, 87s, 76s, 55, 44" },
-          "MP": { open: "55+, ATs+, A5s-A4s, KQs, KJs, QJs, JTs, T9s, 98s, 87s, AJo+, KQo, KJo, QJo", mix: "A9s, KTs, QTs, J9s, 76s, 65s, 44, 33" },
-          "HJ": { open: "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, ATo+, KQo, KJo, QJo", mix: "KTs, QTs, J9s, T8s, 65s, 54s, 33" },
-          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, 54s, ATo+, KTo+, QTo+, JTo, KQo", mix: "K8s, Q8s, J8s, T7s, 64s, 53s, A9o, K9o, Q9o, 22" },
-          "BTN": { open: "22+, A2s+, K2s+, Q5s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K7o+, Q9o+, J9o+, T9o, 98o", mix: "K6o, Q8o, J8o, T8o, 87o, 76o, 64s, 43s" },
-          "SB": { open: "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K8o+, Q9o+, J9o+, T9o", mix: "K7o, Q8o, J8o, T8o, 98o, 87o, 76o" },
-          "BB": { open: "", mix: "" }
-        }
+  "cash": {
+    "100": {
+      "UTG": {
+        "open": "77+, AQs+, AJs, KQs, AQo+, KQo, ATs, A5s-A4s, KJs, QJs, JTs, T9s, 98s",
+        "mix": "66, AJo, KTs, QTs, J9s, 87s, 55, 44, 33, 22"
       },
-      mtt: {
-        "40": { // 40bb MTT doit exister
-          "UTG": { open: "66+, ATs+, KQs, AJo+, KQo", mix: "A5s, KJs, QJs, JTs, 55" },
-          "UTG+1": { open: "55+, ATs+, KQs, KJs, QJs, AJo+, KQo", mix: "A9s, T9s" },
-          "MP": { open: "55+, ATs+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, AJo+, KQo", mix: "KTs, QTs" },
-          "HJ": { open: "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, ATo+, KQo, KJo, QJo", mix: "KTs, QTs, 87s" },
-          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, ATo+, KTo+, QTo+, JTo", mix: "K8s, Q8s, J8s, 54s, A9o" },
-          "BTN": { open: "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K8o+, Q9o+, J9o+, T9o", mix: "K7o, Q8o, J8o, 98o, 87o" },
-          "SB": { open: "22+, A2s+, K6s+, Q8s+, J8s+, T8s+, 98s, 87s, 76s, A2o+, KTo+, QTo+, JTo", mix: "K9o, Q9o, J9o" },
-          "BB": { open: "", mix: "" }
-        },
-        "30": {
-          "UTG": { open: "77+, ATs+, KQs, AJo+, KQo, A5s", mix: "66, KJs, QJs, JTs, 55" },
-          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, AJo+, KQo, A5s", mix: "A9s, QTs, JTs, T9s" },
-          "MP": { open: "55+, ATs+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, AJo+, KQo", mix: "A9s, KTs, QTs, J9s" },
-          "HJ": { open: "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, ATo+, KQo, KJo, QJo", mix: "KTs, QTs, J9s, 87s" },
-          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, ATo+, KTo+, QTo+, JTo", mix: "K8s, Q8s, J8s, T7s, 54s, A9o" },
-          "BTN": { open: "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K7o+, Q9o+, J9o+, T9o", mix: "K6o, Q8o, J8o, T8o, 98o, 87o, 76o" },
-          "SB": { open: "22+, A2s+, K5s+, Q8s+, J8s+, T8s+, 98s, 87s, 76s, A2o+, K9o+, QTo+, JTo", mix: "K8o, Q9o, J9o, T9o, 65s, 54s" },
-          "BB": { open: "", mix: "" }
-        },
-        "20": {
-          "UTG": { open: "77+, AQs+, AJs, KQs, AQo+, A5s", mix: "66, KJs" },
-          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, AJo+", mix: "A9s, KQo" },
-          "MP": { open: "55+, ATs+, A5s, KQs, KJs, QJs, AJo+", mix: "KQo, A9s, JTs" },
-          "HJ": { open: "44+, A9s+, A5s, KQs, KJs, QJs, JTs, ATo+, KQo", mix: "KTs, QTs, T9s" },
-          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, ATo+, KJo+, QTo+, JTo", mix: "K8s, Q8s, J8s, 87s" },
-          "BTN": { open: "22+, A2s+, K2s+, Q7s+, J7s+, T7s+, 97s+, 86s+, 76s, 65s, A2o+, K9o+, Q9o+, J9o+, T9o", mix: "K8o, Q8o, J8o, 98o, 87o" },
-          "SB": { open: "22+, A2s+, K7s+, Q9s+, J9s+, T9s, 98s, A2o+, KTo+, QTo+, JTo", mix: "K9o, Q9o, J9o, 87s" },
-          "BB": { open: "", mix: "" }
-        },
-        "15": {
-          "UTG": { open: "77+, AQs+, AJs, KQs, AQo+, A5s", mix: "66, KJs, QJs" },
-          "UTG+1": { open: "66+, ATs+, KQs, KJs, QJs, AJo+, A5s", mix: "A9s, KQo" },
-          "MP": { open: "55+, ATs+, A5s, KQs, KJs, QJs, AJo+", mix: "KQo, A9s, JTs" },
-          "HJ": { open: "44+, A9s+, A5s, KQs, KJs, QJs, JTs, ATo+, KQo", mix: "KTs, QTs, T9s" },
-          "CO": { open: "33+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, ATo+, KJo+, QTo+, JTo", mix: "K8s, Q8s, J8s, T8s, 87s" },
-          "BTN": { open: "22+, A2s+, K2s+, Q7s+, J7s+, T7s+, 97s+, 86s+, 76s, 65s, A2o+, K9o+, Q9o+, J9o+, T9o", mix: "K8o, Q8o, J8o, 98o, 87o" },
-          "SB": { open: "22+, A2s+, K7s+, Q9s+, J9s+, T9s, 98s, A2o+, KTo+, QTo+, JTo", mix: "K9o, Q9o, J9o, 87s" },
-          "BB": { open: "", mix: "" }
-        }
+      "UTG+1": {
+        "open": "66+, ATs+, KQs, KJs, QJs, JTs, T9s, 98s, AJo+, KQo",
+        "mix": "A9s, KTs, QTs, J9s, 87s, 76s, 55, 44, 22, 33, A4s, A5s"
+      },
+      "MP": {
+        "open": "55+, ATs+, A5s-A4s, KQs, KJs, QJs, JTs, T9s, 98s, 87s, AJo+, KQo, KJo, QJo",
+        "mix": "A9s, KTs, QTs, J9s, 76s, 65s, 44, 33, 22"
+      },
+      "HJ": {
+        "open": "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, ATo+, KQo, KJo, QJo",
+        "mix": "KTs, QTs, J9s, T8s, 65s, 54s, 33, 22"
+      },
+      "CO": {
+        "open": "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, 54s, ATo+, KTo+, QTo+, JTo, KQo",
+        "mix": "K8s, Q8s, J8s, T7s, 64s, 53s, A9o, K9o, Q9o, 22"
+      },
+      "BTN": {
+        "open": "22+, A2s+, K2s+, Q5s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K7o+, Q9o+, J9o+, T9o, 98o",
+        "mix": "K6o, Q8o, J8o, T8o, 87o, 76o, 64s, 43s, 53s"
+      },
+      "SB": {
+        "open": "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K8o+, Q9o+, J9o+, T9o",
+        "mix": "K7o, Q8o, J8o, T8o, 98o, 87o, 76o"
+      },
+      "BB": {
+        "open": "RFI | format=cash | stack=100bb | pos=BB | mix  =",
+        "mix": ""
       }
-    };
+    }
+  },
+  "mtt": {
+    "40": {
+      "UTG": {
+        "open": "66+, ATs+, KQs, AJo+, KQo, A4s-A3s",
+        "mix": "A5s, KJs, QJs, JTs, 55"
+      },
+      "UTG+1": {
+        "open": "55+, ATs+, KQs, KJs, QJs, AJo+, KQo, A9s",
+        "mix": "T9s, A3s, A4s, A5s, JTs"
+      },
+      "MP": {
+        "open": "55+, ATs+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, AJo+, KQo, A8s-A6s, T8s",
+        "mix": "KTs, QTs, A9s"
+      },
+      "HJ": {
+        "open": "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, ATo+, KQo, KJo, QJo, K8s, Q8s, J8s, JTo",
+        "mix": "KTs, QTs, 87s, A6s, A7s, A8s, T8s"
+      },
+      "CO": {
+        "open": "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, ATo+, KTo+, QTo+, JTo, T9o",
+        "mix": "K8s, Q8s, J8s, 54s, A9o"
+      },
+      "BTN": {
+        "open": "22+, A2s+, K2s+, Q5s+, J6s+, T6s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K8o+, Q9o+, J9o+, T9o",
+        "mix": "K7o, Q8o, J8o, 98o, 87o"
+      },
+      "SB": {
+        "open": "22+, A2s+, K6s+, Q8s+, J8s+, T8s+, 98s, 87s, 76s, A2o+, KTo+, QTo+, JTo",
+        "mix": "K9o, Q9o, J9o"
+      },
+      "BB": {
+        "open": "RFI | format=mtt | stack=40bb | pos=BB | mix  =",
+        "mix": ""
+      }
+    },
+    "30": {
+      "UTG": {
+        "open": "77+, ATs+, KQs, AJo+, KQo, A5s",
+        "mix": "66, KJs, QJs, JTs, 55"
+      },
+      "UTG+1": {
+        "open": "66+, ATs+, KQs, KJs, QJs, AJo+, KQo, A5s",
+        "mix": "A9s, QTs, JTs, T9s, 55"
+      },
+      "MP": {
+        "open": "55+, ATs+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, AJo+, KQo, A8s-A6s, T8s",
+        "mix": "A9s, KTs, QTs, J9s"
+      },
+      "HJ": {
+        "open": "44+, A9s+, A5s-A2s, KQs, KJs, QJs, JTs, T9s, 98s, ATo+, KQo, KJo, QJo",
+        "mix": "KTs, QTs, J9s, 87s, A6s, A7s, A8s, T8s"
+      },
+      "CO": {
+        "open": "33+, A2s+, K9s+, Q9s+, J9s+, T8s+, 97s+, 86s+, 75s+, 65s, ATo+, KTo+, QTo+, JTo, T9o",
+        "mix": "K8s, Q8s, J8s, T7s, 54s, A9o"
+      },
+      "BTN": {
+        "open": "22+, A2s+, K2s+, Q6s+, J7s+, T7s+, 97s+, 86s+, 75s+, 65s, 54s, A2o+, K7o+, Q9o+, J9o+, T9o",
+        "mix": "K6o, Q8o, J8o, T8o, 98o, 87o, 76o"
+      },
+      "SB": {
+        "open": "22+, A2s+, K5s+, Q8s+, J8s+, T8s+, 98s, 87s, 76s, A2o+, K9o+, QTo+, JTo",
+        "mix": "K8o, Q9o, J9o, T9o, 65s, 54s"
+      },
+      "BB": {
+        "open": "RFI | format=mtt | stack=30bb | pos=BB | mix  =",
+        "mix": ""
+      }
+    },
+    "20": {
+      "UTG": {
+        "open": "77+, AQs+, AJs, KQs, AQo+, A5s",
+        "mix": "66, KJs"
+      },
+      "UTG+1": {
+        "open": "66+, ATs+, KQs, KJs, QJs, AJo+",
+        "mix": "A9s, KQo, A5s"
+      },
+      "MP": {
+        "open": "55+, ATs+, A5s, KQs, KJs, QJs, AJo+",
+        "mix": "KQo, A9s, JTs"
+      },
+      "HJ": {
+        "open": "44+, A9s+, A5s, KQs, KJs, QJs, JTs, ATo+, KQo",
+        "mix": "KTs, QTs, T9s"
+      },
+      "CO": {
+        "open": "33+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, ATo+, KJo+, QTo+, JTo",
+        "mix": "K8s, Q8s, J8s, 87s"
+      },
+      "BTN": {
+        "open": "22+, A2s+, K2s+, Q7s+, J7s+, T7s+, 97s+, 86s+, 76s, 65s, A2o+, K9o+, Q9o+, J9o+, T9o",
+        "mix": "K8o, Q8o, J8o, 98o, 87o"
+      },
+      "SB": {
+        "open": "22+, A2s+, K7s+, Q9s+, J9s+, T9s, 98s, A2o+, KTo+, QTo+, JTo",
+        "mix": "K9o, Q9o, J9o, 87s"
+      },
+      "BB": {
+        "open": "RFI | format=mtt | stack=20bb | pos=BB | mix  =",
+        "mix": ""
+      }
+    },
+    "15": {
+      "UTG": {
+        "open": "77+, AQs+, AJs, KQs, AQo+, A5s, 66",
+        "mix": "66, KJs"
+      },
+      "UTG+1": {
+        "open": "66+, ATs+, KQs, KJs, QJs, AJo+, A5s",
+        "mix": "A9s, KQo"
+      },
+      "MP": {
+        "open": "55+, ATs+, A5s, KQs, KJs, QJs, AJo+",
+        "mix": "KQo, A9s, JTs"
+      },
+      "HJ": {
+        "open": "44+, A9s+, A5s, KQs, KJs, QJs, JTs, ATo+, KQo",
+        "mix": "KTs, QTs, T9s"
+      },
+      "CO": {
+        "open": "33+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, ATo+, KJo+, QTo+, JTo",
+        "mix": "K8s, Q8s, J8s, T8s, 87s"
+      },
+      "BTN": {
+        "open": "22+, A2s+, K2s+, Q7s+, J7s+, T7s+, 97s+, 86s+, 76s, 65s, A2o+, K9o+, Q9o+, J9o+, T9o",
+        "mix": "K8o, Q8o, J8o, 98o, 87o"
+      },
+      "SB": {
+        "open": "22+, A2s+, K7s+, Q9s+, J9s+, T9s, 98s, A2o+, KTo+, QTo+, JTo",
+        "mix": "K9o, Q9o, J9o, 87s"
+      },
+      "BB": {
+        "open": "RFI | format=mtt | stack=15bb | pos=BB | mix  =",
+        "mix": ""
+      }
+    }
+  }
+};
 
     /******************* RANGES DE DEFENSE VS OPEN *******************/
     // IMPORTANT : assurer l'existence des clés cash->"100" et mtt->{"40","30","20","15"}
     const DEFENSE = {
-      cash: {
-        "100": {
-          "UTG": {
-            "UTG+1": { cc: "", tb: "QQ+, AKs, AKo, AQs" },
-            "MP": { cc: "", tb: "JJ+, AKs, AKo, AQs, KQs" },
-            "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs, KQs" },
-            "CO": { cc: "AQs, KQs, JJ-99", tb: "QQ+, AKs, AKo, AJs, KJs" },
-            "BTN": { cc: "AQs-ATs, KQs, KJs, QJs, JJ-88, JTs, T9s", tb: "QQ+, AKs, AKo, AJs, KQo" },
-            "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" },
-            "BB": { cc: "A2s-AKs, KJs-KTs, QJs, JTs, T9s, 99-22, AJo-ATo, KQo", tb: "QQ+, AKs, AKo, AQs" }
-          },
-          "UTG+1": {
-            "MP": { cc: "", tb: "JJ+, AKs, AKo, AQs" },
-            "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs" },
-            "CO": { cc: "AQs, KQs, JJ-99", tb: "QQ+, AKs, AKo, AJs" },
-            "BTN": { cc: "AQs-ATs, KQs, QJs, JJ-88", tb: "QQ+, AKs, AKo, AJs, KQo" },
-            "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" },
-            "BB": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, paires", tb: "JJ+, AKs, AKo, AQs" }
-          },
-          "MP": {
-            "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs" },
-            "CO": { cc: "AQs-ATs, KQs, QJs, 99-77", tb: "QQ+, AKs, AKo, AJs" },
-            "BTN": { cc: "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-99, AKs, AKo, AQs-AJs" },
-            "SB": { cc: "AQs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs" },
-            "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo, AQs" }
-          },
-          "HJ": {
-            "CO": { cc: "AQs-ATs, KQs, KJs, QJs, JTs, 99-77", tb: "QQ+, AKs, AKo, AJs, KQo" },
-            "BTN": { cc: "A2s-AKs, K2s-KQs, QJs, JTs, T9s, 98s, 87s, 76s, 99-22, AJo-ATo, KQo, KJo", tb: "QQ-99, AKs, AKo, AQs-AJs, KQs-KJs, QJs" },
-            "SB": { cc: "AQs-AJs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs, AJs, KQs" },
-            "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, T9s, 98s, 87s, 76s, 65s, 54s, paires", tb: "JJ+, AKs, AKo, AQs, KQs" }
-          },
-          "CO": {
-            "BTN": { cc: "A2s-AKs, K9s+, Q9s+, JTs, T9s, 98s, 87s, 76s, 88-22, AJo-ATo, KQo, KJo, QJo", tb: "QQ-99, AKs, AKo, AQs-AJs, KQs-KJs, QJs" },
-            "SB": { cc: "AQs-ATs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs, AJs, KQs" },
-            "BB": { cc: "A2s-AKs, K2s-KQs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs, KQs" }
-          },
-          "BTN": {
-            "SB": { cc: "Assez tight: AQs-ATs, KQs, QJs, JTs, 99-77", tb: "QQ-88, AKs, AKo, AQs-AJs, KQs-KJs" },
-            "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, paires, AJo-ATo, KQo, KJo", tb: "TT+, AQo+, AQs-AJs, KQs-KJs" }
-          },
-          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+  "cash": {
+    "100": {
+      "UTG": {
+        "UTG+1": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "MP": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo, AQs, KQs"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo, AQs, KQs"
+        },
+        "CO": {
+          "cc": "AQs, KQs, JJ-99",
+          "tb": "QQ+, AKs, AKo, AJs, KJs"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs, KJs, QJs, JJ-88, JTs, T9s",
+          "tb": "QQ+, AKs, AKo, AJs, KQo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, KJs-KTs, QJs, JTs, T9s, 99-22, AJo-ATo, KQo",
+          "tb": "QQ+, AKs, AKo, AQs"
         }
       },
-      mtt: {
-        "40": {
-          "UTG": {
-            "UTG+1": { cc: "", tb: "QQ+, AKs, AKo, AQs" }, "MP": { cc: "", tb: "TT+, AKs, AKo, AQs" }, "HJ": { cc: "", tb: "TT+, AKs, AKo, AQs" }, "CO": { cc: "AQs, KQs, JJ-99", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "AQs-ATs, KQs, QJs, JJ-88, JTs, T9s", tb: "QQ+, AKs, AKo, AJs" }, "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, paires", tb: "JJ+, AKs, AKo, AQs" }
-          },
-          "UTG+1": { "MP": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
-          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs, KQs, QJs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "QQ-99, AKs, AKo, AQs-AJs" }, "SB": { cc: "Peu", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
-          "HJ": { "CO": { cc: "AQs-ATs, KQs, QJs, 99-77", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "Quelques AQs-AJs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
-          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo vs 2-2.5x", tb: "TT+, AQo+, AQs-AJs, KQs" }, "SB": { cc: "AQs-ATs, KQs, 99-88", tb: "QQ+, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
-          "BTN": { "SB": { cc: "AQs-ATs, KQs, QJs, JTs, 99-77", tb: "QQ-88, AKs, AKo, AQs-AJs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
-          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+      "UTG+1": {
+        "MP": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo, AQs"
         },
-        "30": {
-          "UTG": {
-            "UTG+1": { cc: "", tb: "JJ+, AKs, AKo, AQs" }, "HJ": { cc: "", tb: "JJ+, AKs, AKo, AQs" }, "CO": { cc: "AQs, KQs, TT-99", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "AQs-ATs, KQs, QJs, TT-88, JTs, T9s", tb: "QQ+, AKs, AKo, AJs" }, "SB": { cc: "", tb: "QQ+, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)", tb: "JJ+, AKs, AKo, AQs" }
-          },
-          "UTG+1": { "MP": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
-          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs, KQs, QJs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "Peu", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
-          "HJ": { "CO": { cc: "AQs-ATs, KQs, QJs, 99-77", tb: "QQ+, AKs, AKo, AJs" }, "BTN": { cc: "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "AQs-AJs, KQs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "JJ+, AKs, AKo" } },
-          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo vs 2-2.2x", tb: "TT+, AQo+, AQs-AJs, KQs" }, "SB": { cc: "AQs-ATs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
-          "BTN": { "SB": { cc: "AQs-ATs, KQs, QJs, JTs, TT-99", tb: "QQ-99, AKs, AKo, AQs-AJs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" } },
-          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo, AQs"
         },
-        "20": {
-          "UTG": {
-            "UTG+1": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "JJ+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo, AQs" }, "BTN": { cc: "AQs-ATs, KQs, JTs, T9s", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)", tb: "JJ+, AKs, AKo" }
-          },
-          "UTG+1": { "MP": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "AQs-AJs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "HJ": { "CO": { cc: "AQs-ATs, KQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22", tb: "QQ-TT, AKs, AKo, AQs-AJs" }, "SB": { cc: "AQs-AJs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs-AJs" }, "SB": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "BTN": { "SB": { cc: "AQs-ATs, KQs, QJs, JTs, TT-99", tb: "QQ-99, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        "CO": {
+          "cc": "AQs, KQs, JJ-99",
+          "tb": "QQ+, AKs, AKo, AJs"
         },
-        "15": {
-          "UTG": {
-            "UTG+1": { cc: "", tb: "JJ+, AKs, AKo" }, "HJ": { cc: "", tb: "QQ+, AKs, AKo" }, "CO": { cc: "AQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs, JTs, T9s", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)", tb: "QQ+, AKs, AKo" }
-          },
-          "UTG+1": { "MP": { cc: "", tb: "QQ+, AKs, AKo" }, "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "SB": { cc: "", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "MP": { "HJ": { cc: "", tb: "TT+, AKs, AKo" }, "CO": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88", tb: "QQ-TT, AKs, AKo, AQs" }, "SB": { cc: "AQs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "HJ": { "CO": { cc: "AQs-ATs", tb: "QQ+, AKs, AKo" }, "BTN": { cc: "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88", tb: "QQ-TT, AKs, AKo, AQs" }, "SB": { cc: "AQs, KQs, 99-88", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "CO": { "BTN": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQo+, AQs" }, "SB": { cc: "Peu", tb: "QQ+, AKs, AKo" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "BTN": { "SB": { cc: "Très tight", tb: "QQ-99, AKs, AKo, AQs" }, "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo", tb: "TT+, AQs, AQo+" } },
-          "SB": { "BB": { cc: "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo", tb: "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s" } }
+        "BTN": {
+          "cc": "AQs-ATs, KQs, QJs, JJ-88",
+          "tb": "QQ+, AKs, AKo, AJs, KQo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, paires",
+          "tb": "JJ+, AKs, AKo, AQs"
+        }
+      },
+      "MP": {
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo, AQs"
+        },
+        "CO": {
+          "cc": "AQs-ATs, KQs, QJs, 99-77",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22",
+          "tb": "QQ-99, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo, AQs"
+        }
+      },
+      "HJ": {
+        "CO": {
+          "cc": "AQs-ATs, KQs, KJs, QJs, JTs, 99-77",
+          "tb": "QQ+, AKs, AKo, AJs, KQo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, QJs, JTs, T9s, 98s, 87s, 76s, 99-22, AJo-ATo, KQo, KJo",
+          "tb": "QQ-99, AKs, AKo, AQs-AJs, KQs-KJs, QJs, A5s-A4s, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs-AJs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo, AQs, AJs, KQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, T9s, 98s, 87s, 76s, 65s, 54s, paires",
+          "tb": "JJ+, AKs, AKo, AQs, KQs"
+        }
+      },
+      "CO": {
+        "BTN": {
+          "cc": "A2s-AKs, K9s+, Q9s+, JTs, T9s, 98s, 87s, 76s, 88-22, AJo-ATo, KQo, KJo, QJo",
+          "tb": "QQ-99, AKs, AKo, AQs-AJs, KQs-KJs, QJs, A5s-A4s, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs-ATs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo, AQs, AJs, KQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs-AJs, KQs"
+        }
+      },
+      "BTN": {
+        "SB": {
+          "cc": "Assez tight: AQs-ATs, KQs, QJs, JTs, 99-77",
+          "tb": "QQ-88, AKs, AKo, AQs-AJs, KQs-KJs, AA, KK"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, paires, AJo-ATo, KQo, KJo",
+          "tb": "TT+, AQo+, AQs-AJs, KQs-KJs"
+        }
+      },
+      "SB": {
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo",
+          "tb": "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s"
         }
       }
-    };
+    }
+  },
+  "mtt": {
+    "40": {
+      "UTG": {
+        "UTG+1": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo, AQs"
+        },
+        "CO": {
+          "cc": "AQs, KQs, JJ-99",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs, QJs, JJ-88, JTs, T9s",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, paires",
+          "tb": "JJ+, AKs, AKo, AQs"
+        }
+      },
+      "UTG+1": {
+        "MP": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "MP": {
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs-ATs, KQs, QJs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "QQ-99, AKs, AKo, AQs-AJs, A5s-A4s, AA, KK"
+        },
+        "SB": {
+          "cc": "Peu",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "HJ": {
+        "CO": {
+          "cc": "AQs-ATs, KQs, QJs, 99-77",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22",
+          "tb": "QQ-TT, AKs, AKo, AQs-AJs, A5s-A4s, AA, KK"
+        },
+        "SB": {
+          "cc": "Quelques AQs-AJs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "CO": {
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo vs 2-2.5x",
+          "tb": "TT+, AQo+, AQs-AJs, KQs"
+        },
+        "SB": {
+          "cc": "AQs-ATs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs-AJs"
+        }
+      },
+      "BTN": {
+        "SB": {
+          "cc": "AQs-ATs, KQs, QJs, JTs, 99-77",
+          "tb": "QQ-88, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs-AJs"
+        }
+      },
+      "SB": {
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo",
+          "tb": "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s"
+        }
+      }
+    },
+    "30": {
+      "UTG": {
+        "UTG+1": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo, AQs"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo, AQs"
+        },
+        "CO": {
+          "cc": "AQs, KQs, TT-99",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs, QJs, TT-88, JTs, T9s",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)",
+          "tb": "JJ+, AKs, AKo, AQs"
+        }
+      },
+      "UTG+1": {
+        "MP": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "MP": {
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs-ATs, KQs, QJs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "QQ-TT, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "SB": {
+          "cc": "Peu",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "HJ": {
+        "CO": {
+          "cc": "AQs-ATs, KQs, QJs, 99-77",
+          "tb": "QQ+, AKs, AKo, AJs"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22",
+          "tb": "QQ-TT, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs-AJs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "CO": {
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo vs 2-2.2x",
+          "tb": "TT+, AQo+, AQs-AJs, KQs"
+        },
+        "SB": {
+          "cc": "AQs-ATs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs-AJs"
+        }
+      },
+      "BTN": {
+        "SB": {
+          "cc": "AQs-ATs, KQs, QJs, JTs, TT-99",
+          "tb": "QQ-99, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs-AJs"
+        }
+      },
+      "SB": {
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo",
+          "tb": "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s"
+        }
+      }
+    },
+    "20": {
+      "UTG": {
+        "UTG+1": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs, KQs",
+          "tb": "QQ+, AKs, AKo, AQs"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs, JTs, T9s",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)",
+          "tb": "JJ+, AKs, AKo"
+        }
+      },
+      "UTG+1": {
+        "MP": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "MP": {
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs-ATs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88",
+          "tb": "QQ-TT, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs-AJs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "HJ": {
+        "CO": {
+          "cc": "AQs-ATs, KQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22",
+          "tb": "QQ-TT, AKs, AKo, AQs-AJs, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs-AJs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "CO": {
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs-AJs"
+        },
+        "SB": {
+          "cc": "AQs-ATs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "BTN": {
+        "SB": {
+          "cc": "AQs-ATs, KQs, QJs, JTs, TT-99",
+          "tb": "QQ-99, AKs, AKo, AQs, AA, KK"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "SB": {
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo",
+          "tb": "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s"
+        }
+      }
+    },
+    "15": {
+      "UTG": {
+        "UTG+1": {
+          "cc": "",
+          "tb": "JJ+, AKs, AKo"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "AQs-ATs, JTs, T9s",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo (antes)",
+          "tb": "QQ+, AKs, AKo"
+        }
+      },
+      "UTG+1": {
+        "MP": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "AQs-ATs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "SB": {
+          "cc": "",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "MP": {
+        "HJ": {
+          "cc": "",
+          "tb": "TT+, AKs, AKo"
+        },
+        "CO": {
+          "cc": "AQs-ATs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88",
+          "tb": "QQ-TT, AKs, AKo, AQs, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "HJ": {
+        "CO": {
+          "cc": "AQs-ATs",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BTN": {
+          "cc": "A2s-AKs, AKs, AQs, AJs, KQs, KJs, QJs, JTs, 99-88",
+          "tb": "QQ-TT, AKs, AKo, AQs, AA, KK"
+        },
+        "SB": {
+          "cc": "AQs, KQs, 99-88",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "CO": {
+        "BTN": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQo+, AQs"
+        },
+        "SB": {
+          "cc": "Peu",
+          "tb": "QQ+, AKs, AKo"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "BTN": {
+        "SB": {
+          "cc": "Très tight",
+          "tb": "QQ-99, AKs, AKo, AQs, AA, KK"
+        },
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo",
+          "tb": "TT+, AQs, AQo+"
+        }
+      },
+      "SB": {
+        "BB": {
+          "cc": "A2s-AKs, K2s-KQs, Q2s-QJs, J2s-JTs, T9s, 98s, 87s, 76s, 65s, 54s, 99-22, AJo-ATo, KQo, KJo, QJo",
+          "tb": "99+, AJo+, A9s+, KQo, KJs+, QJs, A5s-A2s, K5s"
+        }
+      }
+    }
+  }
+};
 
     // RFI hardened tests
     try {
@@ -723,16 +1368,6 @@
     const gridEl = document.getElementById("grid");
     const statusEl = document.getElementById("status");
     let pinned = null;
-// --- iOS fix helpers ---
-let __renderTimer = null;
-function scheduleRenderRFI() {
-  if (__renderTimer) clearTimeout(__renderTimer);
-  __renderTimer = setTimeout(() => {
-    __renderTimer = null;
-    renderRFI();
-  }, 150);
-}
-
     function makeStateMap(fmt, stack, pos, sizing) {
       // Robust: honor literal tokens present in base.open/base.mix even if parser misses them
       function tokenIn(expr, tok) {
@@ -827,14 +1462,9 @@ function scheduleRenderRFI() {
       if (fmt === "cash") stack = "100"; else if (stack === "100") stack = "30";
       const pos = document.getElementById("pos").value;
       const sizing = document.getElementById("sizing").value;
-      (function(){
-  const ae = document.activeElement && document.activeElement.id;
-  if (ae === "stack") return;
-  for (const opt of document.querySelectorAll("#stack option")) {
-    const val = opt.value;
-    opt.disabled = (fmt === "cash" && val !== "100") || (fmt === "mtt" && val === "100");
-  }
-})();
+      for (const opt of document.querySelectorAll("#stack option")) {
+        const val = opt.value; opt.disabled = (fmt === "cash" && val !== "100") || (fmt === "mtt" && val === "100");
+      }
       const map = makeStateMap(fmt, stack, pos, sizing);
       gridEl.innerHTML = "";
       const header = document.createElement("div"); header.className = "row"; header.appendChild(cellHead("")); for (const r of RANKS) header.appendChild(cellHead(r)); gridEl.appendChild(header);
@@ -920,73 +1550,19 @@ function scheduleRenderRFI() {
       document.querySelectorAll('.tab[aria-selected]').forEach(t => t.setAttribute('aria-selected', 'false'));
       btn.setAttribute('aria-selected', 'true');
     }));
-    /******************* ANNEXES – tirages & outs *******************/
-    (function buildDrawsTable() {
-      const tb = document.getElementById('draws-table-body');
-      if (!tb) return;
-
-      // Liste des tirages standard
-      const draws = [
-        { name: "Tirage ventral (gutshot)", outs: 4 },
-        { name: "Double ventral (double gutter)", outs: 8 },
-        { name: "Quinte par les deux bouts (OESD)", outs: 8 },
-        { name: "Tirage couleur (flush draw)", outs: 9 },
-        { name: "Gutshot + flush draw", outs: 12 },
-        { name: "OESD + flush draw (combo draw)", outs: 15 },
-        { name: "Deux overcards", outs: 6 },
-        { name: "Une overcard", outs: 3 }
-      ];
-
-      const fmt0 = x => Math.round(x);
-      const fmt1 = x => Number(x).toFixed(1);
-
-      // Règle du 4 et du 2 (approximations)
-      const eqToRiver = outs => Math.min(100, outs * 4); // turn+river
-      const eqOneCard = outs => Math.min(100, outs * 2); // une carte (turn->river ou flop->turn)
-
-      draws.forEach(d => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-      <td>${d.name}</td>
-      <td>${fmt0(d.outs)}</td>
-      <td>≈ ${fmt1(eqToRiver(d.outs))}%</td>
-      <td>≈ ${fmt1(eqOneCard(d.outs))}%</td>
-    `;
-        tb.appendChild(tr);
-      });
-    })();
 
     /******************* ANNEXES – tableau *******************/
     (function buildAnnexTable() {
       const rows = [25, 33, 50, 66, 75, 100, 200];
       const tb = document.getElementById('annex-table-body');
-
-      // convertit le pourcentage en fraction lisible
-      function fractionLabel(p) {
-        switch (p) {
-          case 25: return "1/4 du pot";
-          case 33: return "1/3 du pot";
-          case 50: return "1/2 pot";
-          case 66: return "2/3 du pot";
-          case 75: return "3/4 du pot";
-          case 100: return "pot";
-          case 200: return "2x pot";
-          default: return (p / 100).toFixed(2) + "x pot";
-        }
-      }
-
       const fmt2 = x => Number(x).toFixed(2);
-
       rows.forEach(p => {
-        const b = p / 100;
-        const ratio = (1 + b) / b;
-        const eq = b / (1 + b) * 100;
+        const b = p / 100; const ratio = (1 + b) / b; const eq = b / (1 + b) * 100;
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${p}% (${fractionLabel(p)})</td><td>${fmt2(ratio)} : 1</td><td>${fmt2(eq)}%</td>`;
+        tr.innerHTML = `<td>${p}% (${fmt2(b)}x pot)</td><td>${fmt2(ratio)} : 1</td><td>${fmt2(eq)}%</td>`;
         tb.appendChild(tr);
       });
     })();
-
 
     /******************* TESTS AUTOMATIQUES (console) *******************/
     (function selfTest() {
